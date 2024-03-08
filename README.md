@@ -1,2 +1,5 @@
-# vcf-vault-integration
-Storing your VMware Cloud Foundation secrets in HashiCorp Vault
+# Storing your VMware Cloud Foundation credentials in HashiCorp Vault
+
+![Logo](vcf-vault-integration.png "Storing your VMware Cloud Foundation credentials in HashiCorp Vault")
+
+Related blog post: https://blog.graa.dev/vCF-VaultIntegration
