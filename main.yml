@@ -1,0 +1,53 @@
+---
+- name: Store credentials from vCF in HashiCorp Vault
+  become: false
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - vault.yml
+  tasks:
+  - name: Authenticate with SDDC Manager
+    ansible.builtin.uri:
+      url: "{{ sddc_manager_uri }}/v1/tokens"
+      validate_certs: false
+      method: POST
+      body_format: json
+      headers:
+        Content-Type: "application/json"
+        Accept: "application/json"
+      body:
+        username: "{{ sddc_manager_username }}"
+        password: "{{ sddc_manager_password }}"
+    register: token
+    tags:
+    - vcf
+
+  - name: Retrieve credentials stored in SDDC Manager
+    ansible.builtin.uri:
+      url: "{{ sddc_manager_uri }}/v1/credentials?pageSize=0"
+      validate_certs: false
+      method: GET
+      headers:
+        Accept: "application/json"
+        Authorization: "Bearer {{ token.json.accessToken }}"
+    register: creds
+    no_log: true
+    tags:
+    - vcf
+
+  - name: Write credentials to HashiCorp Vault
+    community.hashi_vault.vault_kv2_write:
+      url: "{{ vault_uri }}"
+      engine_mount_point: "{{ vault_path }}"
+      path: "{{ item.resource.domainName }}/{{ item.resource.resourceType }}/{{ item.resource.resourceName }}/{{ item.credentialType }}"
+      data:
+        username: "{{ item.username }}"
+        password: "{{ item.password }}"
+      auth_method: userpass
+      username: "{{ vault_username }}"
+      password: "{{ vault_password }}"
+    loop: "{{ creds.json.elements | rejectattr('password', 'undefined') }}"
+    register: result
+    no_log: true
+    tags:
+    - vault
