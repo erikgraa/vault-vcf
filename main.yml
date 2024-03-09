@@ -39,6 +39,7 @@
     community.hashi_vault.vault_kv2_write:
       url: "{{ vault_uri }}"
       engine_mount_point: "{{ vault_path }}"
+      read_before_write: true
       path: "{{ item.resource.domainName }}/{{ item.resource.resourceType }}/{{ item.resource.resourceName }}/{{ item.credentialType }}"
       data:
         username: "{{ item.username }}"
@@ -50,4 +51,4 @@
     register: result
     no_log: true
     tags:
-    - vault
+    - hashicorp
